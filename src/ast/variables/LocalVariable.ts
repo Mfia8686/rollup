@@ -28,6 +28,9 @@ import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
+
+	init: ExpressionEntity;
+
 	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	readonly module: Module;
 	readonly kind: VariableKind;
@@ -41,13 +44,14 @@ export default class LocalVariable extends Variable {
 	constructor(
 		name: string,
 		declarator: Identifier | ExportDefaultDeclaration | null,
-		private init: ExpressionEntity,
+		init: ExpressionEntity,
 		context: AstContext,
 		kind: VariableKind
 	) {
 		super(name);
 		this.declarations = declarator ? [declarator] : [];
 		this.deoptimizationTracker = context.deoptimizationTracker;
+		this.init = init;
 		this.module = context.module;
 		this.kind = kind;
 	}

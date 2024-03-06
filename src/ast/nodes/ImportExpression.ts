@@ -42,6 +42,7 @@ export default class ImportExpression extends NodeBase {
 	declare type: NodeType.tImportExpression;
 	declare sourceAstNode: AstNode;
 
+	private accessedPropKey = new Set<string>();
 	private attributes: string | null | true = null;
 	private mechanism: DynamicImportMechanism | null = null;
 	private namespaceExportName: string | false | undefined = undefined;
@@ -82,9 +83,13 @@ export default class ImportExpression extends NodeBase {
 			// Case 1: const { foo } = await import('bar')
 			if (parent2 instanceof VariableDeclarator) {
 				const declaration = parent2.id;
-				return declaration instanceof ObjectPattern
-					? getDeterministicObjectDestructure(declaration)
-					: undefined;
+				if (declaration instanceof Identifier) {
+					return this.accessedPropKey.size > 0 ? [...this.accessedPropKey] : undefined;
+				}
+				if (declaration instanceof ObjectPattern) {
+					return getDeterministicObjectDestructure(declaration);
+				}
+				return undefined;
 			}
 
 			// Case 2: (await import('bar')).foo
@@ -145,6 +150,10 @@ export default class ImportExpression extends NodeBase {
 
 			return;
 		}
+	}
+
+	addAccessedPropKey(key: string): void {
+		this.accessedPropKey.add(key);
 	}
 
 	hasEffects(): boolean {
